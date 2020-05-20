@@ -102,10 +102,10 @@ int mm_init(void)
     PUT(heap_listp, 0);                            /* Alignment padding */
     PUT(heap_listp + (1 * WSIZE), PACK(DSIZE, 1)); /* Prologue header */
     PUT(heap_listp + (2 * WSIZE), PACK(DSIZE, 1)); /* Prologue footer */
-    PUT(heap_listp + (3 * WSIZE), 0); /* predeccessor pointer */
-    PUT(heap_listp + (4 * WSIZE), 0); /* successor pointer */
-    PUT(heap_listp + (5 * WSIZE), PACK(0, 1));     /* Epilogue header */
-    heap_listp += (3*WSIZE); // point to first block after prologue
+    PUT(heap_listp + (3 * WSIZE), PACK(0,1)); /* predeccessor pointer */
+    //PUT(heap_listp + (4 * WSIZE), 0); /* successor pointer */
+    //PUT(heap_listp + (5 * WSIZE), PACK(0, 1));     /* Epilogue header */
+    heap_listp += (2*WSIZE); // point to first block after prologue
 
     /* Extend the empty heap with a free block of CHUNKSIZE bytes */
     if (extend_heap(CHUNKSIZE/WSIZE) == NULL)
@@ -206,7 +206,7 @@ static void *coalesce(void *bp){
 /*
  * mm_free - Freeing a block does nothing.
  */
-void mm_free(void *ptr)
+void mm_free(void *bp)
 {  size_t size = GET_SIZE(HDRP(bp));
 
    PUT(HDRP(bp), PACK(size, 0));
@@ -249,7 +249,6 @@ static void *find_fit(size_t asize){
 }
 
 void mm_check(void){
-
     
     return 1;
 }
