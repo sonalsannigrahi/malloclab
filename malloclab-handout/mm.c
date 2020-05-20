@@ -102,10 +102,10 @@ int mm_init(void)
     PUT(heap_listp, 0);                            /* Alignment padding */
     PUT(heap_listp + (1 * WSIZE), PACK(DSIZE, 1)); /* Prologue header */
     PUT(heap_listp + (2 * WSIZE), PACK(DSIZE, 1)); /* Prologue footer */
-    PUT(heap_listp + (3 * WSIZE), 0); /* predeccessor pointer */
-    PUT(heap_listp + (4 * WSIZE), 0); /* successor pointer */
-    PUT(heap_listp + (5 * WSIZE), PACK(0, 1));     /* Epilogue header */
-    heap_listp += (3*WSIZE); // point to first block after prologue
+    PUT(heap_listp + (3*WSIZE), PACK(0, 1)); /* Epilogue header */
+    // PUT(heap_listp + (4 * WSIZE), 0); /* successor pointer */
+    // PUT(heap_listp + (5 * WSIZE), PACK(0, 1));     /* Epilogue header */
+    heap_listp += (2*WSIZE); // point to first block after prologue
 
     /* Extend the empty heap with a free block of CHUNKSIZE bytes */
     if (extend_heap(CHUNKSIZE/WSIZE) == NULL)
@@ -121,7 +121,9 @@ static void *extend_heap(size_t words)
   /* Allocate an even number of words to maintain alignment */
   // size = ALIGN(words);
   size = (words % 2) ? (words+1) * WSIZE : words * WSIZE; // round up to nearest 2 words
-  if ((long)(bp = mem_sbrk(size)) == -1) return NULL;
+  if ((long)(bp = mem_sbrk(size)) == -1) {
+    return NULL;
+  }
   // receive memory after header o epilogue block -> header of new free block
 
   /* Initialize free block header/footer and the epilogue header */
@@ -129,8 +131,8 @@ static void *extend_heap(size_t words)
   PUT(FTRP(bp), PACK(size, 0)); /* Free block footer */
   PUT(HDRP(NEXT_BLKP(bp)), PACK(0, 1)); /* New epilogue block header */
 //  PUT(FTRP(PREV_BLKP(bp)), PACK(0, 1));
-  /* Coalesce if the previous block was free */
 
+  /* Coalesce if the previous block was free */
   return coalesce(bp); // return block pointer to merged blocks
 }
 
@@ -176,7 +178,7 @@ static void *coalesce(void *bp){
 /*
  * mm_free - Freeing a block does nothing.
  */
-void mm_free(void *ptr)
+void mm_free(void *bp)
 {  size_t size = GET_SIZE(HDRP(bp));
 
    PUT(HDRP(bp), PACK(size, 0));
