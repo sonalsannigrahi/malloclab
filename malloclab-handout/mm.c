@@ -142,7 +142,7 @@ static void *extend_heap(size_t words)
  */
 void *mm_malloc(size_t size)
 {
-  mm_check();
+  // mm_check();
   size_t asize;
   size_t extendsize;
   void *bp;
@@ -208,13 +208,14 @@ static void *coalesce(void *bp){
 /*
  * mm_free - Freeing a block does nothing.
  */
-void mm_free(void *bp)
-{  size_t size = GET_SIZE(HDRP(bp));
+void mm_free(void *bp){  
+  
+  size_t size = GET_SIZE(HDRP(bp));
 
-   PUT(HDRP(bp), PACK(size, 0));
-   PUT(FTRP(bp), PACK(size, 0));
-   coalesce(bp);
- }
+  PUT(HDRP(bp), PACK(size, 0));
+  PUT(FTRP(bp), PACK(size, 0));
+  coalesce(bp);
+}
 
 /*
  if ptr is NULL, the call is equivalent to mm_malloc(size);
