@@ -271,15 +271,15 @@ block size.*/
 
 static void place(void *bp, size_t asize)
 {
-  size_t size = GET_SIZE(HDRP(bp)); // size of free block
+  size_t freeSize = GET_SIZE(HDRP(bp)); 
   int previous = GET_PREV(bp);
   int successor = GET_SUCC(bp);
 
-  if ((size - asize) >= (2*DSIZE)) {
+  if (freeSize - asize >= MINBLOCKSIZE){
     PUT(HDRP(bp), PACK(asize, 1));
     PUT(FTRP(bp), PACK(asize, 1));
-    PUT(HDRP(NEXT_BLKP(bp)), PACK(size-asize, 0));
-    PUT(FTRP(NEXT_BLKP(bp)), PACK(size-asize, 0));
+    PUT(HDRP(bp), PACK(freeSize - asize, 0));
+    PUT(FTRP(bp), PACK(freeSize - asize, 0));
     if (successor != 0){
       PUT_PREV(successor, bp);
     }
@@ -287,9 +287,9 @@ static void place(void *bp, size_t asize)
     PUT_PREV(bp,previous);
     PUT_SUCC(bp,successor);
   }
-  else { // no split
-    PUT(HDRP(bp), PACK(size, 1));
-    PUT(FTRP(bp), PACK(size, 1));
+  else {
+    PUT(HDRP(bp), PACK(freeSize, 1));
+    PUT(FTRP(bp), PACK(freeSize, 1));
     if (successor != 0){
       PUT_PREV(successor, previous);
     }
