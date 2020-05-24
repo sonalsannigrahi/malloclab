@@ -26,13 +26,13 @@ team_t team = {
     /* Team name */
     "ateam",
     /* First member's full name */
-    "Harry Bovik",
+    "Sonal Sannigrahi",
     /* First member's email address */
-    "bovik@cs.cmu.edu",
+    "sonal.sannigrahi@polytechnique.edu",
     /* Second member's full name (leave blank if none) */
-    "",
+    "Noah Sarfati",
     /* Second member's email address (leave blank if none) */
-    ""};
+    "noah.sarfati@polytechnique.edu"};
 
 /* single word (4) or double word (8) alignment */
 #define ALIGNMENT 8
@@ -66,16 +66,16 @@ team_t team = {
 /* Given block ptr bp, compute address of next and previous blocks */
 #define NEXT_BLKP(bp) ((char *)(bp) + GET_SIZE(((char *)(bp)-WSIZE)))
 #define PREV_BLKP(bp) ((char *)(bp)-GET_SIZE(((char *)(bp)-DSIZE)))
-#define NEXT_FREE(bp) (*(char **)(bp))
-#define PREV_FREE(bp)
+/*#define NEXT_FREE(bp) (*(char **)(bp))
+#define PREV_FREE(bp)*/
 /* Macros for explicit free list */
 /* Read and write a word to successor free block of current free block*/
-// #define GET_PREV(bp) (*(unsigned int *)(bp))
-// #define PUT_PREV(p, val) (*(unsigned int *)(bp) = (val))
-// #define GET_SUCC(bp) (*(unsigned int *)(bp+1))
-// #define PUT_SUCC(p, val) (*(unsigned int *)(bp+1) = (val))
+#define GET_PREV(bp) (*(unsigned int *)(bp))
+#define PUT_PREV(p, val) (*(unsigned int *)(bp) = (val))
+#define GET_SUCC(bp) (*(unsigned int *)(bp+1))
+#define PUT_SUCC(p, val) (*(unsigned int *)(bp+1) = (val))
 /* Dereference void pointer*/
-//#define PTR_VAL(bp) (*(int*)bp)
+#define PTR_VAL(bp) (*(int*)bp)
 
 /* Macros for mm_check */
 #define GET_FLAG(bp) (*(unsigned int *)(bp + 2))
@@ -271,27 +271,33 @@ block size.*/
 
 static void place(void *bp, size_t asize)
 {
-  size_t freeSize = GET_SIZE(HDRP(bp));
+  size_t size = GET_SIZE(HDRP(bp)); // size of free block
+  int previous = GET_PREV(bp);
+  int successor = GET_SUCC(bp);
 
-  /* splitting only if the size of the remainder would equal or exceed the minimum block size. */
-  if (freeSize - asize >= MINBLOCKSIZE)
-  {
+  if ((size - asize) >= (2*DSIZE)) {
     PUT(HDRP(bp), PACK(asize, 1));
     PUT(FTRP(bp), PACK(asize, 1));
-
-    //Split to the next block
-    bp = NEXT_BLKP(bp);
-    PUT(HDRP(bp), PACK(freeSize - asize, 0));
-    PUT(FTRP(bp), PACK(freeSize - asize, 0));
-    coalesce(bp);
+    PUT(HDRP(NEXT_BLKP(bp)), PACK(size-asize, 0));
+    PUT(FTRP(NEXT_BLKP(bp)), PACK(size-asize, 0));
+    if (successor != 0){
+      PUT_PREV(successor, bp);
+    }
+    PUT_SUCC(previous, bp);
+    PUT_PREV(bp,previous);
+    PUT_SUCC(bp,successor);
   }
-  else
-  {
+  else { // no split
+    PUT(HDRP(bp), PACK(size, 1));
+    PUT(FTRP(bp), PACK(size, 1));
+    if (successor != 0){
+      PUT_PREV(successor, previous);
+    }
+    PUT_SUCC(previous,successor);
 
-    PUT(HDRP(bp), PACK(freeSize, 1));
-    PUT(FTRP(bp), PACK(freeSize, 1));
   }
 }
+
 
 /* Implement a find_fit function for the simple allocator described in Section 9.9.12. */
 static void *find_fit(size_t asize)
