@@ -271,29 +271,31 @@ block size.*/
 
 static void place(void *bp, size_t asize)
 {
-  size_t freeSize = GET_SIZE(HDRP(bp)); 
-  int previous = GET_PREV(bp);
-  int successor = GET_SUCC(bp);
+  size_t freeSize = GET_SIZE(HDRP(bp));
+  int prev = GET_PREV(bp);
+  int succ = GET_SUCC(bp);
 
-  if (freeSize - asize >= MINBLOCKSIZE){
+  if ((freeSize - asize) >= MINBLOCKSIZE) 
+  {
     PUT(HDRP(bp), PACK(asize, 1));
     PUT(FTRP(bp), PACK(asize, 1));
-    PUT(HDRP(bp), PACK(freeSize - asize, 0));
-    PUT(FTRP(bp), PACK(freeSize - asize, 0));
-    if (successor != 0){
-      PUT_PREV(successor, bp);
+    PUT(HDRP(NEXT_BLKP(bp)), PACK(freeSize-asize, 0));
+    PUT(FTRP(NEXT_BLKP(bp)), PACK(freeSize-asize, 0));
+    if (succ != 0){
+      PUT_PREV(succ, bp);
     }
-    PUT_SUCC(previous, bp);
-    PUT_PREV(bp,previous);
-    PUT_SUCC(bp,successor);
+    PUT_SUCC(prev, bp);
+    PUT_PREV(bp,prev);
+    PUT_SUCC(bp,succ);
   }
-  else {
+  else 
+  { 
     PUT(HDRP(bp), PACK(freeSize, 1));
     PUT(FTRP(bp), PACK(freeSize, 1));
-    if (successor != 0){
-      PUT_PREV(successor, previous);
+    if (succ != 0){
+      PUT_PREV(succ, prev);
     }
-    PUT_SUCC(previous,successor);
+    PUT_SUCC(prev,succ);
 
   }
 }
