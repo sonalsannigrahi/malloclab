@@ -1,13 +1,9 @@
-/*
- * mm-naive.c - The fastest, least memory-efficient malloc package.
+ /*Explicit Allocator
+ * In this solution, we have implemented an explicit free list
+ * here we have added two new functions, delete and insert
+ * which are called in the coalesce routine.
  * 
- * In this naive approach, a block is allocated by simply incrementing
- * the brk pointer.  A block is pure payload. There are no headers or
- * footers.  Blocks are never coalesced or reused. Realloc is
- * implemented directly using mm_malloc and mm_free.
- *
- * NOTE TO STUDENTS: Replace this header comment with your own header
- * comment that gives a high level description of your solution.
+ * Here the data structure used by the free list is a doubly linked list.
  */
 
 #include <stdbool.h>
@@ -225,7 +221,7 @@ The call to mm_realloc changes the size of the memory block pointed to by ptr (t
 to size bytes and returns the address of the new block. 
 Notice that the address of the new block might be the same as the old block, 
 or it might be different, depending on your implementation, the amount of internal fragmentation in the old block, 
-and the size of the realloc request.
+and the size of the resalloc request.
 The contents of the new block are the same as those of the old ptr block, 
 up to the minimum of the old and new sizes. Everything else is uninitialized. 
 For example, if the old block is 8 bytes and the new block is 12 bytes, 
@@ -260,8 +256,11 @@ void *mm_realloc(void *ptr, size_t size)
   return bp;
 }
 
-/* Implement a find_fit function for the simple allocator described in Section 9.9.12. */
-
+ /*  Finds fit for a block with "asize" bytes from the free list.
+ *   Extends the heap if there is a remainder.
+ *   And Returns that block's address
+ *   or NULL if no suitable block was found. 
+ */
 static void *find_fit(size_t asize)
 {
   void *bp;
@@ -280,7 +279,7 @@ static void *find_fit(size_t asize)
   }
   else
     counter = 0;
-  // mm_check();
+  
   for (bp = heap_listp; GET_ALLOC(HDRP(bp)) == 0; bp = GET_NEXT_PTR(bp))
   {
     if (asize <= (size_t)GET_SIZE(FTRP(bp)))
@@ -292,10 +291,10 @@ static void *find_fit(size_t asize)
   return NULL;
 }
 
-/*Your solution should place the requested block at the beginning of the free block,
-splitting only if the size of the remainder would equal or exceed the minimum
-block size.*/
-
+/*   Place a block of "asize" bytes at the start of the free block "bp" and
+ *   split that block if the remainder would be at least the minimum block
+ *   size. 
+ */
 static void place(void *bp, size_t asize)
 {
   size_t freeSize = GET_SIZE(HDRP(bp));
@@ -317,6 +316,10 @@ static void place(void *bp, size_t asize)
     delete_node(bp);
   }
 }
+
+
+
+/*Inserts and deletes the free block pointer int the free_list*/
 
 static void insert_node(void *bp)
 {
@@ -343,7 +346,7 @@ static int mm_check(void)
   for (bp = heap_listp; GET_ALLOC(HDRP(bp)) == 0; bp = GET_NEXT_PTR(bp))
   {
   }
-  // printf("End of heap : %p \n",bp);
+  printf("End of heap : %p \n",bp);
 
   //Check Coalesce
   for (bp = heap_listp; GET_ALLOC(HDRP(bp)) == 0; bp = GET_NEXT_PTR(bp))
@@ -355,7 +358,7 @@ static int mm_check(void)
     }
   }
 
-
+  //is every free block in the free list
 
   void *p;
   bool found = false;
